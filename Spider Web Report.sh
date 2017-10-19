@@ -51,7 +51,6 @@ useragent=$(echo -e $useragentb | sed -n "${random}p")
 }
 
 usersagents
-echo "$useragent"
 
 clear && echo "
  $(tput setaf 52)                (                                 )                                 ) 
@@ -72,6 +71,7 @@ $(tput setaf 15) ---------------------------------------------------------------
 echo -n " Target website: $cinco" 
 read -t 60 web
 echo $fin
+web=$(echo "$web" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g;s/\/$//' )
 webs=$(echo "$web" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g;s/\/$//;s/\//-/g' )
 
 if [ -z "$webs" ]; then
@@ -94,24 +94,24 @@ do
 #Busqueda de archivos
 
 	curl -sA "$useragent" \
-	--url "www.bing.com/search?q=site:$webs+filetype:(pdf+OR+ps+OR+dwf+OR+kml+OR+kmz+OR+xls+OR+ppt+OR+doc+OR+rtf+OR+swf+OR+txt+OR+sql)&first=$page&count=40&filter=0" \
+	--url "www.bing.com/search?q=site:$web+filetype:(pdf+OR+ps+OR+dwf+OR+kml+OR+kmz+OR+xls+OR+ppt+OR+doc+OR+rtf+OR+swf+OR+txt+OR+sql)&first=$page&count=40&filter=0" \
 	-o ~/Desktop/Reports\ S.W.R./.temp/web.html && \
 	cat ~/Desktop/Reports\ S.W.R./.temp/web.html | awk 'NR!~/^(48)$/' | perl -pe 's/\s/\n/g' | grep "href=\"" \
-	| grep -v "&amp" | grep "$webs"| uniq | tr -d '"' >> ~/Desktop/Reports\ S.W.R./.temp/web2.html && \
-more ~/Desktop/Reports\ S.W.R./.temp/web2.html | perl -pe 's/href=//g' | grep "$webs"|sort| uniq | cut -f1 -d";" \
-> ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt"  
+	| grep -v "&amp" | grep "$web"| uniq | tr -d '"' >> ~/Desktop/Reports\ S.W.R./.temp/web2.html && \
+more ~/Desktop/Reports\ S.W.R./.temp/web2.html | perl -pe 's/href=//g' | grep "$web"|sort| uniq | cut -f1 -d";" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g;s/\/$//' \
+> ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt"
 
 #Busqueda de correos
 
 curl -sA "$useragent" \
---url "www.bing.com/search?q=site:*$webs+inbody:mail&first=$page&count=40&filter=0" -o ~/Desktop/Reports\ S.W.R./.temp/Mails.html && \
+--url "www.bing.com/search?q=site:*$web+inbody:mail&first=$page&count=40&filter=0" -o ~/Desktop/Reports\ S.W.R./.temp/Mails.html && \
 cat ~/Desktop/Reports\ S.W.R./.temp/Mails.html  \
 | perl -pe 's/"|{|}|:|;|,|\(|\)/\n/g;s/\s/\n/g;s/<strong>//g;s/</\n/g' \
 | grep -E '@.*\.' | grep -v "/" | sort | uniq >> ~/Desktop/Reports\ S.W.R./.temp/Mails.txt
 #exportar a resultado final
 cat ~/Desktop/Reports\ S.W.R./.temp/Mails.txt  | sort | uniq | perl -pe 's/\.$//g' > ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt"
 
-#Busqueda de directorios
+#Funcion suma
 
 suma ()
 {
@@ -138,29 +138,31 @@ suma
 
 totalinicial=$(($total + $lines + $craw))
 
+#Cortar bucle
+
 if [[ "$totalinicial" == "$totalfinal" ]]; then
 break
 fi
 
+#Busqueda de directorios
+
 curl -sA "$useragent" \
---url "https://www.bing.com/search?q=site:$webs/&start=1&count=$page&filter=0" -o ~/Desktop/Reports\ S.W.R./.temp/webc.html && \
-cat ~/Desktop/Reports\ S.W.R./.temp/webc.html | awk 'NR!~/^(48)$/' | perl -pe 's/\s/\n/g' | grep "href=\"" | grep "$webs"| tr -d '"'| perl -pe 's/href=//g'| grep -v "&amp;" | grep -v "=" | grep -o ".*/" | sort | uniq >> ~/Desktop/Reports\ S.W.R./.temp/web2c.html && \
-more ~/Desktop/Reports\ S.W.R./.temp/web2c.html | perl -pe 's/href=//g' | grep "$webs"|sort| uniq | cut -f1 -d";" \
+--url "https://www.bing.com/search?q=site:$web&first=$page&count=40&filter=0" -o ~/Desktop/Reports\ S.W.R./.temp/webc.html && \
+cat ~/Desktop/Reports\ S.W.R./.temp/webc.html | awk 'NR!~/^(48)$/' | perl -pe 's/\s/\n/g' | grep "href=\"" | grep "$web" | tr -d '"'| perl -pe 's/href=//g'| grep -v "&amp;" | grep -v "=" | grep -o ".*/" | sort | uniq >> ~/Desktop/Reports\ S.W.R./.temp/web2c.html && \
+more ~/Desktop/Reports\ S.W.R./.temp/web2c.html | perl -pe 's/href=//g' | grep "$web" |sort| uniq | cut -f1 -d";" \
 > ~/Desktop/Reports\ S.W.R./$webs/"$webs-Crawled".txt
 
 #Crear resultado final de directorios
 
-cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt" ~/Desktop/Reports\ S.W.R./$webs/"$webs-Crawled.txt" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g' | cut -d/ -f1-2 | sed 's/\/*$//g' | sort | uniq > ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled1.txt"
+cat ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Files.txt" ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled.txt" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g' | sed 's%/[^/]*$%/%' | sed 's/\/*$//g' | sort | uniq > ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled1.txt"
 
-#Resultados en directo
-
-total=$(wc -l ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt"  | awk '{print $1}')
-lines=$(wc -l ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt" | awk '{print $1}')
-craw=$(wc -l ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled1.txt" | awk '{print $1}')
+#Suma de resultados encontrados
 
 suma
 
 totalfinal=$(($total + $lines + $craw))
+
+#Resultados en directo
 
 echo -ne " $cinco$page$fin results;$cinco $total$fin files, $cinco$lines$fin mails and $cinco$craw$fin directories found.\r"
 
@@ -256,5 +258,13 @@ echo -ne " $cinco$craw$fin directories found.\n"
 fi
 
 echo
-###
+
+#Borrando archivos temporales y otras cosas
+
 mv ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled1.txt"  ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Directories.txt" && rm -rf ~/Desktop/Reports\ S.W.R./.temp ~/Desktop/Reports\ S.W.R./"$webs"/"$webs"-Crawled*
+
+cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt"
+
+cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt"
+
+cat ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Directories.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Directories.txt"
