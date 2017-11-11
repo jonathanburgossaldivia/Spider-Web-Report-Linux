@@ -68,8 +68,7 @@ $nueve (((((((((((((((((((((((($siete Script by Jonathan Burgos Saldivia$nueve )
 $(tput setaf 15) --------------------------------------------------------------------------------------$(tput sgr0)
 "
 
-echo -n " Target website: $cinco" 
-read -t 60 web
+read -p " Target website: $cinco" -t 60 -e web
 echo $fin
 web=$(echo "$web" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g;s/\/$//' )
 webs=$(echo "$web" | perl -pe 's/http:\/\/www.//g;s/https:\/\/www.//g;s/http:\/\///g;s/https:\/\///g;s/\/$//;s/\//-/g' )
