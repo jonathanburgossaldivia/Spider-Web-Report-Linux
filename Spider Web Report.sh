@@ -264,6 +264,6 @@ mv ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Crawled1.txt"  ~/Desktop/Reports\ S.
 
 cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./$webs/"$webs-Files.txt"
 
-cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt"
+cat ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt" | grep -q "@" || rm -rf ~/Desktop/Reports\ S.W.R./$webs/"$webs-Mails.txt"
 
 cat ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Directories.txt" | grep -q $web || rm -rf ~/Desktop/Reports\ S.W.R./"$webs"/"$webs-Directories.txt"
